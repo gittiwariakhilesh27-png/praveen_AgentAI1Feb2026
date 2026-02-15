@@ -161,6 +161,83 @@ def get_salary_stats(department_name: Optional[str] = None) -> dict:
     return row_to_dict(row)
 
 
+@mcp.tool()
+def get_schema() -> dict:
+    """Return the database schema: every table with its column names and types.
+
+    Returns:
+        A dict keyed by table name, each value being a list of
+        { name, type, notnull, pk } dicts.
+    """
+    with get_db() as conn:
+        tables = [
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+            ).fetchall()
+        ]
+        schema: dict = {}
+        for table in tables:
+            cols = conn.execute(f"PRAGMA table_info({table})").fetchall()
+            schema[table] = [
+                {
+                    "name":    col[1],
+                    "type":    col[2],
+                    "notnull": bool(col[3]),
+                    "pk":      bool(col[5]),
+                }
+                for col in cols
+            ]
+    return schema
+
+
+@mcp.tool()
+def execute_query(sql: str, params: list | None = None) -> dict:
+    """Execute a custom read-only SELECT query against the employee database.
+
+    Only SELECT statements are permitted. Any attempt to run INSERT, UPDATE,
+    DELETE, DROP, ALTER, CREATE, or other write/DDL statements will be rejected.
+
+    Args:
+        sql:    A valid SQLite SELECT statement.
+        params: Optional list of positional parameters (? placeholders).
+
+    Returns:
+        A dict with keys:
+          - columns: list of column names
+          - rows:    list of row dicts
+          - count:   number of rows returned
+
+    Available tables:
+      employees  (id, first_name, last_name, email, phone, department_id,
+                  job_title, salary, hire_date, is_active)
+      departments (id, name)
+    """
+    _BLOCKED = {"insert", "update", "delete", "drop", "alter",
+                "create", "replace", "truncate", "pragma", "attach", "detach"}
+
+    normalised = sql.strip().lower()
+    if not normalised.startswith("select"):
+        raise ValueError("Only SELECT queries are allowed.")
+
+    first_token = normalised.split()[0]
+    if first_token in _BLOCKED:
+        raise ValueError(f"Statement type '{first_token}' is not permitted.")
+
+    # Secondary check: reject if any write keyword appears as a top-level token
+    tokens = set(normalised.replace("(", " ").replace(")", " ").split())
+    blocked_found = tokens & _BLOCKED
+    if blocked_found:
+        raise ValueError(f"Query contains forbidden keyword(s): {blocked_found}")
+
+    with get_db() as conn:
+        cursor = conn.execute(sql, params or [])
+        columns = [d[0] for d in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    return {"columns": columns, "rows": rows, "count": len(rows)}
+
+
 # ── Entry point ────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     # Runs as an HTTP server on http://localhost:8000/mcp
