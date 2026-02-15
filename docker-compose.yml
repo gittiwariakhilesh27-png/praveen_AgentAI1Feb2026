@@ -1,0 +1,24 @@
+services:
+
+  employee-mcp:
+    build: ./employee-mcp
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/mcp')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  hr-agent:
+    build: ./hr-agent
+    ports:
+      - "8080:8080"
+    environment:
+      - EMPLOYEE_MCP_URL=http://employee-mcp:8000/mcp
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+    depends_on:
+      employee-mcp:
+        condition: service_healthy
