@@ -1,0 +1,9 @@
+langgraph
+langchain-openai
+python-dotenv
+fastapi
+uvicorn
+pydantic
+httpx
+asyncio
+typing-extensions

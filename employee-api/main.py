@@ -179,7 +179,7 @@ def get_schema() -> dict:
 
 class QueryRequest(BaseModel):
     sql: str
-    params: list | None = None
+    params: Optional[list] = None
 
 
 @app.post("/query")
