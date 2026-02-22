@@ -25,7 +25,7 @@ services:
 
   seed-pinecone:
     build: .
-    command: python scripts/seed_pinecone.py
+    command: python rag/seed_pinecone.py
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - PINECONE_API_KEY=${PINECONE_API_KEY}

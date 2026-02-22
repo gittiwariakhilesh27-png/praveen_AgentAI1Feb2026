@@ -1,3 +1,3 @@
-from rag.pinecone_store import TravelKnowledgeStore
+from rag.seed_pinecone import TravelKnowledgeStore
 
 __all__ = ["TravelKnowledgeStore"]

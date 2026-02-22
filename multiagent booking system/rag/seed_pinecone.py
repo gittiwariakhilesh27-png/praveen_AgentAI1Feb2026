@@ -84,3 +84,22 @@ class TravelKnowledgeStore:
 
     def is_ready(self) -> bool:
         return self._vector_store is not None
+
+
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from rag.travel_knowledge import TRAVEL_DOCUMENTS
+
+    openai_key = os.environ["OPENAI_API_KEY"]
+    pinecone_key = os.environ["PINECONE_API_KEY"]
+    index_name = os.environ.get("PINECONE_INDEX_NAME", "travel-knowledge")
+
+    print(f"[Seed] Connecting to Pinecone index '{index_name}' …")
+    store = TravelKnowledgeStore(openai_key, pinecone_key, index_name)
+    store.connect()
+
+    print(f"[Seed] Upserting {len(TRAVEL_DOCUMENTS)} documents …")
+    store.upsert_documents(TRAVEL_DOCUMENTS)
+    print("[Seed] Done.")
