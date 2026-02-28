@@ -1,0 +1,10 @@
+# Framework
+phidata
+openai
+# Tools
+duckduckgo-search
+yfinance
+newspaper4k
+python-dotenv
+lancedb
+sqlalchemy
