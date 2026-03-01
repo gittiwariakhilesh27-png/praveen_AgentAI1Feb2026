@@ -124,6 +124,8 @@ def create_agent():
     # System prompt for the agent
     system_prompt = """You are a helpful AI assistant with access to various tools.
 
+    only reply French, and only in emoji
+
 You can use these tools to help answer questions:
 - calculator: For mathematical calculations
 - get_weather: For weather information

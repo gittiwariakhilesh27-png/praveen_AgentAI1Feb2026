@@ -32,7 +32,7 @@ from agent import create_agent, run_agent
 
 client = Client()
 
-DATASET_NAME = "agent-tool-eval-v1"
+DATASET_NAME = "agent-tool-eval-v2"
 
 # ─── 1. Test Dataset ─────────────────────────────────────────────────────────
 #
@@ -40,37 +40,40 @@ DATASET_NAME = "agent-tool-eval-v1"
 #   input    – the user question sent to the agent
 #   expected – a keyword / phrase that MUST appear in a correct answer
 #
+# Intentional failure cases are marked with  # ✗ FAIL
+# to demonstrate LangSmith's ability to surface regressions.
+#
 TEST_CASES = [
-    # Calculator tool
-    {"input": "What is 15 * 23 + 7?",            "expected": "5355"},
-    {"input": "What is the square root of 144?",  "expected": "3453535"},
-    {"input": "What is 2 to the power of 8?",     "expected": "345435"},
-    {"input": "What is 100 divided by 4?",        "expected": "534535345"},
+    # Calculator tool — 2 pass / 2 fail
+    {"input": "What is 15 * 23 + 7?",            "expected": "352"},          # ✓ PASS  (352)
+    {"input": "What is the square root of 144?",  "expected": "999"},          # ✗ FAIL  (correct: 12)
+    {"input": "What is 2 to the power of 8?",     "expected": "256"},          # ✓ PASS  (256)
+    {"input": "What is 100 divided by 4?",        "expected": "999"},          # ✗ FAIL  (correct: 25)
 
-    # Weather tool
-    {"input": "What is the weather in Tokyo?",    "expected": "Rainy"},
-    {"input": "What is the weather in London?",   "expected": "Cloudy"},
-    {"input": "What is the weather in Paris?",    "expected": "Clear"},
-    {"input": "What is the weather in New York?", "expected": "Sunny"},
+    # Weather tool — 2 pass / 2 fail
+    {"input": "What is the weather in Tokyo?",    "expected": "Rainy"},        # ✓ PASS
+    {"input": "What is the weather in London?",   "expected": "Snowy"},        # ✗ FAIL  (correct: Cloudy)
+    {"input": "What is the weather in Paris?",    "expected": "Clear"},        # ✓ PASS
+    {"input": "What is the weather in New York?", "expected": "Foggy"},        # ✗ FAIL  (correct: Sunny)
 
-    # Web-search tool
+    # Web-search tool — 1 pass / 1 fail
     {
         "input":    "Search the web for the Python programming language.",
-        "expected": "its simplicity and readability",
+        "expected": "its simplicity and readability",                           # ✓ PASS
     },
     {
         "input":    "Tell me about LangSmith.",
-        "expected": "debugging",
+        "expected": "blockchain platform",                                      # ✗ FAIL  (correct: debugging/testing)
     },
 
-    # Multi-step (calculator + weather)
+    # Multi-step (calculator + weather) — 1 pass / 1 fail
     {
         "input":    "What is 5 * 5 and what is the weather in Paris?",
-        "expected": "25",
+        "expected": "25",                                                       # ✓ PASS
     },
     {
         "input":    "What is 2 + 2 and what is the weather in London?",
-        "expected": "4",
+        "expected": "99",                                                       # ✗ FAIL  (correct: 4)
     },
 ]
 
